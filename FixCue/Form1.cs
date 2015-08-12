@@ -8,11 +8,12 @@ using System.Windows.Forms;
 using Microsoft.Win32;
 using System.Collections.Generic;
 using Microsoft.VisualBasic.FileIO;
+using System.Security.Principal;
 
 
 
 namespace WindowsApplication2
-{ // just 
+{ 
     public partial class Form1 : Form
     {
         
@@ -120,6 +121,26 @@ namespace WindowsApplication2
         private void ChangeOutputFilePath()
         {
             FilePathTextBox.Text = re.Replace(original_path, @"$1\" + RenameTextBox.Text.Replace(@"%filename%", @"${filename}") + @".$2");
+        }
+
+        private bool IsUserAdministrator()
+        {
+            bool isAdmin;
+            try
+            {
+                WindowsIdentity user = WindowsIdentity.GetCurrent();
+                WindowsPrincipal principal = new WindowsPrincipal(user);
+                isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                isAdmin = false;
+            }
+            catch (Exception ex)
+            {
+                isAdmin = false;
+            }
+            return isAdmin;
         }
 
         private void main_func()   // 主要转码部分
@@ -637,47 +658,23 @@ namespace WindowsApplication2
 
         private void button4_Click(object sender, EventArgs e) // 添加到注册表
         {
-            RegistryKey Root = Registry.ClassesRoot;
-            RegistryKey software = null;
-            RegistryKey CurrentUser = Registry.CurrentUser;
-
-            if ((System.Environment.OSVersion.Version.Major == 5) || ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor == 0)))
+            if (IsUserAdministrator())
             {
-                software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\OpenWithProgids");
-                if (software != null)
+                RegistryKey Root = Registry.ClassesRoot;
+                RegistryKey software = null;
+                RegistryKey CurrentUser = Registry.CurrentUser;
+
+                if ((System.Environment.OSVersion.Version.Major == 5) || ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor == 0)))
                 {
-                    foreach (string b in software.GetValueNames())
+                    software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\OpenWithProgids");
+                    if (software != null)
                     {
-                        AddToReg(b);
+                        foreach (string b in software.GetValueNames())
+                        {
+                            AddToReg(b);
+                        }
                     }
-                }
-                string a = "";
-                software = Root.OpenSubKey(".cue");
-                if (software != null)
-                    a = software.GetValue("").ToString();
-                if (a != "")
-                    AddToReg(a);
-                else
-                {
-                    AddToReg(".cue");
-                }
-            }
-
-            if ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor == 1))
-            {
-                string a = "";
-                software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\UserChoice");
-                if (software != null)
-                {
-                    if (software.GetValue("Progid") != null)
-                        a = software.GetValue("Progid").ToString();
-                }
-                if (a != "")
-                {
-                    AddToReg(a);
-                }
-                else
-                {
+                    string a = "";
                     software = Root.OpenSubKey(".cue");
                     if (software != null)
                         a = software.GetValue("").ToString();
@@ -688,8 +685,39 @@ namespace WindowsApplication2
                         AddToReg(".cue");
                     }
                 }
+
+                if ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor >= 1))
+                {
+                    string a = "";
+                    software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\UserChoice");
+                    if (software != null)
+                    {
+                        if (software.GetValue("Progid") != null)
+                            a = software.GetValue("Progid").ToString();
+                    }
+                    if (a != "")
+                    {
+                        AddToReg(a);
+                    }
+                    else
+                    {
+                        software = Root.OpenSubKey(".cue");
+                        if (software != null)
+                            a = software.GetValue("").ToString();
+                        if (a != "")
+                            AddToReg(a);
+                        else
+                        {
+                            AddToReg(".cue");
+                        }
+                    }
+                }
+                MessageBox.Show("已成功注册到右键菜单!");
             }
-            MessageBox.Show("已成功注册到右键菜单!");
+            else
+            {
+                MessageBox.Show("请重启程序用管理员身份运行!");
+            }
         }
 
         void AddToReg(string a)
@@ -708,49 +736,24 @@ namespace WindowsApplication2
         }
 
         private void button5_Click(object sender, EventArgs e) //从注册表移除
-        {            
-            RegistryKey CurrentUser = Registry.CurrentUser;
-            RegistryKey Root = Registry.ClassesRoot;
-            RegistryKey software=null;
-
-            if ((System.Environment.OSVersion.Version.Major == 5)||((System.Environment.OSVersion.Version.Major == 6)&&(System.Environment.OSVersion.Version.Minor == 0)))
-            {      
-                software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\OpenWithProgids");
-                if (software != null)
-                {
-                    foreach (string b in software.GetValueNames())
-                    {
-                        RemoveFromReg(b);                        
-                    }
-                }
-                string a = "";
-                software = Root.OpenSubKey(".cue");
-                if (software != null)
-                    a = software.GetValue("").ToString();
-                if (a != "")
-                    RemoveFromReg(a);
-                else
-                {
-                    RemoveFromReg(".cue");   
-                }        
-            }
-
-            if ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor == 1))
+        {
+            if (IsUserAdministrator())
             {
+                RegistryKey CurrentUser = Registry.CurrentUser;
+                RegistryKey Root = Registry.ClassesRoot;
+                RegistryKey software = null;
 
-                string a = "";
-                software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\UserChoice");
-                if (software != null)
+                if ((System.Environment.OSVersion.Version.Major == 5) || ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor == 0)))
                 {
-                    if (software.GetValue("Progid") != null)
-                        a = software.GetValue("Progid").ToString();
-                }
-                if (a != "")
-                {
-                    RemoveFromReg(a);
-                }
-                else
-                {
+                    software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\OpenWithProgids");
+                    if (software != null)
+                    {
+                        foreach (string b in software.GetValueNames())
+                        {
+                            RemoveFromReg(b);
+                        }
+                    }
+                    string a = "";
                     software = Root.OpenSubKey(".cue");
                     if (software != null)
                         a = software.GetValue("").ToString();
@@ -761,8 +764,40 @@ namespace WindowsApplication2
                         RemoveFromReg(".cue");
                     }
                 }
+
+                if ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor == 1))
+                {
+
+                    string a = "";
+                    software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\UserChoice");
+                    if (software != null)
+                    {
+                        if (software.GetValue("Progid") != null)
+                            a = software.GetValue("Progid").ToString();
+                    }
+                    if (a != "")
+                    {
+                        RemoveFromReg(a);
+                    }
+                    else
+                    {
+                        software = Root.OpenSubKey(".cue");
+                        if (software != null)
+                            a = software.GetValue("").ToString();
+                        if (a != "")
+                            RemoveFromReg(a);
+                        else
+                        {
+                            RemoveFromReg(".cue");
+                        }
+                    }
+                }
+                MessageBox.Show("已成功从右键菜单卸载!");
             }
-            MessageBox.Show("已成功从右键菜单卸载!");
+            else
+            {
+                MessageBox.Show("请重启程序用管理员身份运行!");
+            }
         }
 
         void RemoveFromReg(string a)

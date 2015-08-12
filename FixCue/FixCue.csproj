@@ -19,8 +19,8 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <ManifestCertificateThumbprint>FF020FB6E7EE66BFA7EBCDDB797E91A413906514</ManifestCertificateThumbprint>
     <ManifestKeyFile>FixCue_TemporaryKey.pfx</ManifestKeyFile>
-    <GenerateManifests>true</GenerateManifests>
-    <SignManifests>true</SignManifests>
+    <GenerateManifests>false</GenerateManifests>
+    <SignManifests>false</SignManifests>
     <ApplicationIcon>mahoro.ico</ApplicationIcon>
     <TargetZone>LocalIntranet</TargetZone>
     <PublishUrl>C:\Users\Administrator\Desktop\To be downloaded\</PublishUrl>
@@ -59,6 +59,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup />
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
