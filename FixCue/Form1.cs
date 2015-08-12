@@ -50,6 +50,12 @@ namespace WindowsApplication2
             {
                 switch (getcodetype(original_path))
                 {
+                    case "CODETYPE_UTF8NOBOM":
+                        {
+                            var utf8WithoutBom = new UTF8Encoding(false);
+                            readText = File.ReadAllText(original_path, utf8WithoutBom);                            
+                            break;
+                        }
                     case "CODETYPE_SHIFTJIS":
                         {
                             readText = File.ReadAllText(original_path, Encoding.GetEncoding(932));
@@ -222,60 +228,124 @@ namespace WindowsApplication2
 
         private string getcodetype(string path)
         {
-            string strCodeType = "CODETYPE_SHIFTJIS";
+            string strCodeType = "CODETYPE_UTF8NOBOM";
 
             Byte[] MyByte = File.ReadAllBytes(path);
             int high, low, chr, i;
             int JP1 = 0, JP2 = 0;
             bool FakeJP = false;
 
-            for (i = 0; i < MyByte.Length; )
+            i = 0;
+            bool isUTF8 = true;
+            while (i < MyByte.Length)
             {
-                high = MyByte[i]; //读取第一个byte
-                i++;
-                if (high <= 0x7F)  //ASCII码区
+                if ((0x80 & MyByte[i]) == 0) // ASCII
                 {
-                    low = high;
-                    high = 0;
-                }
-                else if ((high >= 0xA1) && (high <= 0xDF))  //半角片假名区
-                {
-                    low = high;
-                    high = 0;
-                    JP1++;
-                }
-                else  //双字节区
-                {
-                    low = MyByte[i]; //读取低位
                     i++;
-                    JP2++;
+                    continue;
                 }
-                chr = low + high * 256;
-
-                if (chr < 0x80) // ASCII
-                { }
-                else if (chr < 0xA1) // 0x80 - 0xA0 未定义空间
+                else if ((0xE0 & MyByte[i]) == 0xC0) // 110xxxxx
                 {
-                    strCodeType = "CODETYPE_DEFAULT"; // 未知编码
-                    break;
-                }
-                else if (chr < (0xA1 + 63)) // 0xA1 - 0xDF 半角假名区
-                { }
-                else if (chr < 0x8140) // 0xE0 - 0x813F 未定义空间
-                {
-                    strCodeType = "CODETYPE_DEFAULT";  // 未知编码
-                    break;
-                }
-                else // 0x8140 - 0xFFFF
-                {
-                    char a = JISMapBuffer[chr - 0x8140 + 63];
-                    if (a == '\uFFFD')
+                    if (i+1>MyByte.Length)
                     {
-                        strCodeType = "CODETYPE_GBK";
+                        isUTF8 = false;
+                        break;
+                    }
+                    if ((0xC0 & MyByte[i + 1]) == 0x80) // 10xxxxxx
+                    {
+                        i += 2;
+                        continue;
+                    }
+                    else
+                    {
+                        isUTF8 = false;
                         break;
                     }
                 }
+                else if ((0xF0 & MyByte[i]) == 0xE0) // 1110xxxx
+                {
+                    if (i + 1 > MyByte.Length)
+                    {
+                        isUTF8 = false;
+                        break;
+                    }
+                    if (i + 1 > MyByte.Length)
+                    {
+                        isUTF8 = false;
+                        break;
+                    }
+                    if (((0xC0 & MyByte[i + 1]) == 0x80) && ((0xC0 & MyByte[i + 2]) == 0x80)) // 10xxxxxx 10xxxxxx
+                    {
+                        i += 3;
+                        continue;
+                    }
+                    else
+                    {
+                        isUTF8 = false;
+                        break;
+                    }
+                }
+                else // 不是UTF-8字符串
+                {
+                    isUTF8 = false;
+                    break;
+                }
             }
+
+            if (isUTF8 == false)
+                strCodeType = "CODETYPE_SHIFTJIS";
+
+            if (strCodeType == "CODETYPE_SHIFTJIS")
+            {
+                for (i = 0; i < MyByte.Length; )
+                {
+                    high = MyByte[i]; //读取第一个byte
+                    i++;
+                    if (high <= 0x7F)  //ASCII码区
+                    {
+                        low = high;
+                        high = 0;
+                    }
+                    else if ((high >= 0xA1) && (high <= 0xDF))  //半角片假名区
+                    {
+                        low = high;
+                        high = 0;
+                        JP1++;
+                    }
+                    else  //双字节区
+                    {
+                        low = MyByte[i]; //读取低位
+                        i++;
+                        JP2++;
+                    }
+                    chr = low + high * 256;
+
+                    if (chr < 0x80) // ASCII
+                    { }
+                    else if (chr < 0xA1) // 0x80 - 0xA0 未定义空间
+                    {
+                        strCodeType = "CODETYPE_DEFAULT"; // 未知编码
+                        break;
+                    }
+                    else if (chr < (0xA1 + 63)) // 0xA1 - 0xDF 半角假名区
+                    { }
+                    else if (chr < 0x8140) // 0xE0 - 0x813F 未定义空间
+                    {
+                        strCodeType = "CODETYPE_DEFAULT";  // 未知编码
+                        break;
+                    }
+                    else // 0x8140 - 0xFFFF
+                    {
+                        char a = JISMapBuffer[chr - 0x8140 + 63];
+                        if (a == '\uFFFD')
+                        {
+                            strCodeType = "CODETYPE_GBK";
+                            break;
+                        }
+                    }
+                }
+            }
+            
 
             if ((strCodeType == "CODETYPE_SHIFTJIS")&&((float)JP1/JP2 >= 1.8))
             {
