@@ -246,7 +246,7 @@ namespace WindowsApplication2
                 }
                 else if ((0xE0 & MyByte[i]) == 0xC0) // 110xxxxx
                 {
-                    if (i+1>MyByte.Length)
+                    if (i + 1 > MyByte.Length)
                     {
                         isUTF8 = false;
                         break;
@@ -269,7 +269,7 @@ namespace WindowsApplication2
                         isUTF8 = false;
                         break;
                     }
-                    if (i + 1 > MyByte.Length)
+                    if (i + 2 > MyByte.Length)
                     {
                         isUTF8 = false;
                         break;
