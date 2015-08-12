@@ -765,7 +765,7 @@ namespace WindowsApplication2
                     }
                 }
 
-                if ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor == 1))
+                if ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor >= 1))
                 {
 
                     string a = "";
