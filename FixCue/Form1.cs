@@ -1,4 +1,4 @@
-using System;
+Ôªøusing System;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -18,18 +18,19 @@ namespace WindowsApplication2
     {
         
         Regex re = new Regex(@"(.+)\\(?<filename>.+)\.(.+)");
-        Regex fileline = new Regex(@"FILE ""(.+)\.([^.]+?)""", RegexOptions.IgnoreCase);
-        string original_path = ""; //‘≠ ºŒƒº˛√˚       
-        string readText = "";   //ƒ⁄»›
-       // int code = 0;  //±‡¬Î
-        string FileInFileLine;        
+        Regex fileLine = new Regex(@"FILE ""(.+)\.([^.]+?)""", RegexOptions.IgnoreCase);
+        string originalPath = ""; //ÂéüÂßãÊñá‰ª∂Âêç
+
+        string readText = "";   //ÂÜÖÂÆπ
+       // int code = 0;  //ÁºñÁ†Å
+        string fileInFileLine;        
         INIClass config = new INIClass(Application.StartupPath+@"\config.ini");
         List<string> musicfiles = new List<string>();
         char[] JISMapBuffer = File.ReadAllText(Application.StartupPath + @"\maps\jis.map", Encoding.Unicode).ToCharArray();
         char[] GBMapBuffer = File.ReadAllText(Application.StartupPath + @"\maps\gb.map", Encoding.Unicode).ToCharArray();
         char[] Big5MapBuffer = File.ReadAllText(Application.StartupPath + @"\maps\big5.map", Encoding.Unicode).ToCharArray();
         bool loaded = false;
-        bool forcecode = false;
+        bool forceCode = false;
         //bool started = false;
 
         public Form1()
@@ -39,16 +40,16 @@ namespace WindowsApplication2
 
         private string OpenFile(string original_path)
         {
-            if (forcecode)
+            if (forceCode)
             {
                 if (comboBox1.Text == "950")
                     ReadBIG5();
                 else readText = File.ReadAllText(original_path, Encoding.GetEncoding(int.Parse(comboBox1.Text)));
-                forcecode = false;
+                forceCode = false;
             }
             else
             {
-                switch (getcodetype(original_path))
+                switch (getCodeType(original_path))
                 {
                     case "CODETYPE_UTF8NOBOM":
                         {
@@ -84,7 +85,7 @@ namespace WindowsApplication2
                         }
                 }
             }
-            string FileInFileLine = fileline.Match(readText).Groups[1].Value.ToLower();
+            string FileInFileLine = fileLine.Match(readText).Groups[1].Value.ToLower();
             return FileInFileLine;
         }        
 
@@ -93,16 +94,16 @@ namespace WindowsApplication2
             readText = "";
             // readText = File.ReadAllText(original_path, Encoding.GetEncoding(950));
             //char[] Big5MapBuffer = File.ReadAllText(Application.StartupPath + @"\maps\big5.map", Encoding.Unicode).ToCharArray();
-            Byte[] MyByte = File.ReadAllBytes(original_path);
+            Byte[] MyByte = File.ReadAllBytes(originalPath);
             int high, low, chr, i;
             //   var OutPutByte = new List<Byte>();
             for (i = 0; i < MyByte.Length; )
             {
-                high = MyByte[i]; //∂¡»°µ⁄“ª∏ˆbyte
+                high = MyByte[i]; //ËØªÂèñÁ¨¨‰∏Ä‰∏™byte
                 i++;
-                if (high > 0x7F) //µ⁄“ª∏ˆbyte «∏ﬂŒª
+                if (high > 0x7F) //Á¨¨‰∏Ä‰∏™byteÊòØÈ´ò‰Ωç
                 {
-                    low = MyByte[i]; //∂¡»°µÕŒª
+                    low = MyByte[i]; //ËØªÂèñ‰Ωé‰Ωç
                     i++;
                 }
                 else
@@ -111,7 +112,7 @@ namespace WindowsApplication2
                     high = 0;
                 }
                 chr = low + high * 256;
-                if (chr < 0x80) // ASCII¬Î
+                if (chr < 0x80) // ASCIIÁ†Å
                 {
                     var encoding = new UnicodeEncoding();
                     readText += encoding.GetString(new byte[] { (byte)chr, 0 });
@@ -126,7 +127,7 @@ namespace WindowsApplication2
 
         private void ChangeOutputFilePath()
         {
-            FilePathTextBox.Text = re.Replace(original_path, @"$1\" + RenameTextBox.Text.Replace(@"%filename%", @"${filename}") + @".$2");
+            FilePathTextBox.Text = re.Replace(originalPath, @"$1\" + RenameTextBox.Text.Replace(@"%filename%", @"${filename}") + @".$2");
         }
 
         private bool IsUserAdministrator()
@@ -149,7 +150,7 @@ namespace WindowsApplication2
             return isAdmin;
         }
 
-        private void main_func()   // ÷˜“™◊™¬Î≤ø∑÷
+        private void main_func()   // ‰∏ªË¶ÅËΩ¨Á†ÅÈÉ®ÂàÜ
         {
             loaded = true;
             if (!AutoOutputCheckBox.Checked)
@@ -158,15 +159,15 @@ namespace WindowsApplication2
             if (!CoverOldFileCheckBox.Checked)
                 ChangeOutputFilePath();
             else
-                FilePathTextBox.Text = original_path;
+                FilePathTextBox.Text = originalPath;
 
-            FileInFileLine = OpenFile(original_path);
+            fileInFileLine = OpenFile(originalPath);
             string[] exts = { "ape", "tta", "flac", "tak", "wav", "m4a","wv" };
             musicfiles.Clear();    
 
-            if (Path.GetExtension(original_path).ToLower() == ".cue")
+            if (Path.GetExtension(originalPath).ToLower() == ".cue")
             {
-                // ◊‘∂Ø–ﬁ’˝°∏The True Audio°π°˙°∏WAVE°π“‘±„”⁄fb2k ∂±
+                // Ëá™Âä®‰øÆÊ≠£„ÄåThe True Audio„Äç‚Üí„ÄåWAVE„Äç‰ª•‰æø‰∫éfb2kËØÜÂà´
                 if (ttafixCheckBox.Checked)
                 {
                     readText = Regex.Replace(readText, "the true audio", "WAVE", RegexOptions.IgnoreCase);
@@ -174,22 +175,22 @@ namespace WindowsApplication2
 
                 foreach (string ext in exts)
                 {
-                    musicfiles.AddRange(Directory.GetFiles(Path.GetDirectoryName(original_path), "*." + ext));
+                    musicfiles.AddRange(Directory.GetFiles(Path.GetDirectoryName(originalPath), "*." + ext));
                 }
             
                 bool MultiMusicFileType = false;
 
-                // ◊‘∂ØÃÊªªFILE◊÷∂ŒŒƒº˛√˚
+                // Ëá™Âä®ÊõøÊç¢FILEÂ≠óÊÆµÊñá‰ª∂Âêç
                 if (fileLineCheckBox.Checked)
                 {
-                    if (musicfiles.Count == 0)  //»Áπ˚√ª”–À—µΩ“Ù¿÷¿‡–ÕŒƒº˛£¨≤ª◊˜»Œ∫Œ ¬«È
+                    if (musicfiles.Count == 0)  //Â¶ÇÊûúÊ≤°ÊúâÊêúÂà∞Èü≥‰πêÁ±ªÂûãÊñá‰ª∂Ôºå‰∏ç‰Ωú‰ªª‰Ωï‰∫ãÊÉÖ
                     { }
-                    else if (musicfiles.Count == 1)  //»Áπ˚÷ªÀ—µΩ“ª∏ˆ£¨ƒ«√¥Ω´FILE––µƒ±ª“˝”√Œƒº˛ÃÊªª
+                    else if (musicfiles.Count == 1)  //Â¶ÇÊûúÂè™ÊêúÂà∞‰∏Ä‰∏™ÔºåÈÇ£‰πàÂ∞ÜFILEË°åÁöÑË¢´ÂºïÁî®Êñá‰ª∂ÊõøÊç¢
                     {
                         string MyFile = Path.GetFileName(musicfiles[0]);
-                        readText = fileline.Replace(readText, @"FILE """ + MyFile + @"""");
+                        readText = fileLine.Replace(readText, @"FILE """ + MyFile + @"""");
                     }
-                    else  //»Áπ˚À—µΩ∂‡∏ˆ£¨ƒ«÷∏ˆ≥¢ ‘ «∑Ò”ÎFileInFileLine∆•≈‰
+                    else  //Â¶ÇÊûúÊêúÂà∞Â§ö‰∏™ÔºåÈÇ£ÈÄê‰∏™Â∞ùËØïÊòØÂê¶‰∏éFileInFileLineÂåπÈÖç
                     {
                         string MyExt = Path.GetExtension(musicfiles[0]); 
                         for (int i = 1; i < musicfiles.Count; i++)
@@ -202,56 +203,56 @@ namespace WindowsApplication2
                         } 
                             foreach (string MyFilePath in musicfiles)
                             {
-                                if (FileInFileLine == Path.GetFileNameWithoutExtension(MyFilePath).ToLower())
+                                if (fileInFileLine == Path.GetFileNameWithoutExtension(MyFilePath).ToLower())
                                 {
                                     string MyFile = Path.GetFileName(MyFilePath);
-                                    readText = fileline.Replace(readText, @"FILE """ + MyFile + @"""");
+                                    readText = fileLine.Replace(readText, @"FILE """ + MyFile + @"""");
                                     break;
                                 }
-                                if (Path.GetFileNameWithoutExtension(original_path).ToLower() == Path.GetFileNameWithoutExtension(MyFilePath).ToLower())
+                                if (Path.GetFileNameWithoutExtension(originalPath).ToLower() == Path.GetFileNameWithoutExtension(MyFilePath).ToLower())
                                 {
                                     string MyFile = Path.GetFileName(MyFilePath);
-                                    readText = fileline.Replace(readText, @"FILE """ + MyFile + @"""");
+                                    readText = fileLine.Replace(readText, @"FILE """ + MyFile + @"""");
                                     break;
                                 }
                             }
-                        if (!MultiMusicFileType) //»Áπ˚∂º√ª”–∆•≈‰µƒµ´ «»¥”–÷ª”–“ª÷÷“Ù¿÷¿‡–Õ£¨ƒ«√¥∫√¥ıÃÊªª¡À∞’£®ﬂ◊£ø
-                            readText = fileline.Replace(readText, @"FILE ""$1" + MyExt + @"""");
+                        if (!MultiMusicFileType) //Â¶ÇÊûúÈÉΩÊ≤°ÊúâÂåπÈÖçÁöÑ‰ΩÜÊòØÂç¥ÊúâÂè™Êúâ‰∏ÄÁßçÈü≥‰πêÁ±ªÂûãÔºåÈÇ£‰πàÂ•ΩÊ≠πÊõøÊç¢‰∫ÜÁΩ¢ÔºàÂí¶Ôºü
+                            readText = fileLine.Replace(readText, @"FILE ""$1" + MyExt + @"""");
                     }
                 }
             }
             FileContentTextBox.Text = readText;
 
-            // ◊‘∂Øƒ£ Ω            
+            // Ëá™Âä®Ê®°Âºè            
             if (AutoOutputCheckBox.Checked) output();
         }
 
-        private string getcodetype(string path)
+        private string getCodeType(string path)
         {
             string strCodeType = "CODETYPE_UTF8NOBOM";
 
-            Byte[] MyByte = File.ReadAllBytes(path);
+            Byte[] myByte = File.ReadAllBytes(path);
             int high, low, chr, i;
             int JP1 = 0, JP2 = 0;
-            bool FakeJP = false;
+            bool fakeJP = false;
 
             i = 0;
             bool isUTF8 = true;
-            while (i < MyByte.Length)
+            while (i < myByte.Length)
             {
-                if ((0x80 & MyByte[i]) == 0) // ASCII
+                if ((0x80 & myByte[i]) == 0) // ASCII
                 {
                     i++;
                     continue;
                 }
-                else if ((0xE0 & MyByte[i]) == 0xC0) // 110xxxxx
+                else if ((0xE0 & myByte[i]) == 0xC0) // 110xxxxx
                 {
-                    if (i + 1 > MyByte.Length)
+                    if (i + 1 > myByte.Length)
                     {
                         isUTF8 = false;
                         break;
                     }
-                    if ((0xC0 & MyByte[i + 1]) == 0x80) // 10xxxxxx
+                    if ((0xC0 & myByte[i + 1]) == 0x80) // 10xxxxxx
                     {
                         i += 2;
                         continue;
@@ -262,19 +263,19 @@ namespace WindowsApplication2
                         break;
                     }
                 }
-                else if ((0xF0 & MyByte[i]) == 0xE0) // 1110xxxx
+                else if ((0xF0 & myByte[i]) == 0xE0) // 1110xxxx
                 {
-                    if (i + 1 > MyByte.Length)
+                    if (i + 1 > myByte.Length)
                     {
                         isUTF8 = false;
                         break;
                     }
-                    if (i + 2 > MyByte.Length)
+                    if (i + 2 > myByte.Length)
                     {
                         isUTF8 = false;
                         break;
                     }
-                    if (((0xC0 & MyByte[i + 1]) == 0x80) && ((0xC0 & MyByte[i + 2]) == 0x80)) // 10xxxxxx 10xxxxxx
+                    if (((0xC0 & myByte[i + 1]) == 0x80) && ((0xC0 & myByte[i + 2]) == 0x80)) // 10xxxxxx 10xxxxxx
                     {
                         i += 3;
                         continue;
@@ -285,7 +286,7 @@ namespace WindowsApplication2
                         break;
                     }
                 }
-                else // ≤ª «UTF-8◊÷∑˚¥Æ
+                else //‰∏çÊòØUTF-8Â≠óÁ¨¶‰∏≤
                 {
                     isUTF8 = false;
                     break;
@@ -297,24 +298,24 @@ namespace WindowsApplication2
 
             if (strCodeType == "CODETYPE_SHIFTJIS")
             {
-                for (i = 0; i < MyByte.Length; )
+                for (i = 0; i < myByte.Length; )
                 {
-                    high = MyByte[i]; //∂¡»°µ⁄“ª∏ˆbyte
+                    high = myByte[i]; //ËØªÂèñÁ¨¨‰∏Ä‰∏™byte
                     i++;
-                    if (high <= 0x7F)  //ASCII¬Î«¯
+                    if (high <= 0x7F)  //ASCIIÁ†ÅÂå∫
                     {
                         low = high;
                         high = 0;
                     }
-                    else if ((high >= 0xA1) && (high <= 0xDF))  //∞ÎΩ«∆¨ºŸ√˚«¯
+                    else if ((high >= 0xA1) && (high <= 0xDF))  //ÂçäËßíÁâáÂÅáÂêçÂå∫
                     {
                         low = high;
                         high = 0;
                         JP1++;
                     }
-                    else  //À´◊÷Ω⁄«¯
+                    else  //ÂèåÂ≠óËäÇÂå∫
                     {
-                        low = MyByte[i]; //∂¡»°µÕŒª
+                        low = myByte[i]; //ËØªÂèñ‰Ωé‰Ωç
                         i++;
                         JP2++;
                     }
@@ -322,16 +323,16 @@ namespace WindowsApplication2
 
                     if (chr < 0x80) // ASCII
                     { }
-                    else if (chr < 0xA1) // 0x80 - 0xA0 Œ¥∂®“Âø’º‰
+                    else if (chr < 0xA1) // 0x80 - 0xA0 Êú™ÂÆö‰πâÁ©∫Èó¥
                     {
-                        strCodeType = "CODETYPE_DEFAULT"; // Œ¥÷™±‡¬Î
+                        strCodeType = "CODETYPE_DEFAULT"; // Êú™Áü•ÁºñÁ†Å
                         break;
                     }
-                    else if (chr < (0xA1 + 63)) // 0xA1 - 0xDF ∞ÎΩ«ºŸ√˚«¯
+                    else if (chr < (0xA1 + 63)) // 0xA1 - 0xDF ÂçäËßíÂÅáÂêçÂå∫
                     { }
-                    else if (chr < 0x8140) // 0xE0 - 0x813F Œ¥∂®“Âø’º‰
+                    else if (chr < 0x8140) // 0xE0 - 0x813F Êú™ÂÆö‰πâÁ©∫Èó¥
                     {
-                        strCodeType = "CODETYPE_DEFAULT";  // Œ¥÷™±‡¬Î
+                        strCodeType = "CODETYPE_DEFAULT";  // Êú™Áü•ÁºñÁ†Å
                         break;
                     }
                     else // 0x8140 - 0xFFFF
@@ -349,19 +350,19 @@ namespace WindowsApplication2
 
             if ((strCodeType == "CODETYPE_SHIFTJIS")&&((float)JP1/JP2 >= 1.8))
             {
-                FakeJP = true;
+                fakeJP = true;
                 strCodeType = "CODETYPE_GBK";
             }
 
             if (strCodeType == "CODETYPE_GBK")
             {
-                for (i = 0; i < MyByte.Length; )
+                for (i = 0; i < myByte.Length; )
                 {
-                    high = MyByte[i]; //∂¡»°µ⁄“ª∏ˆbyte
+                    high = myByte[i]; //ËØªÂèñÁ¨¨‰∏Ä‰∏™byte
                     i++;
-                    if (high > 0x7F) //µ⁄“ª∏ˆbyte «∏ﬂŒª
+                    if (high > 0x7F) //Á¨¨‰∏Ä‰∏™byteÊòØÈ´ò‰Ωç
                     {
-                        low = MyByte[i]; //∂¡»°µÕŒª
+                        low = myByte[i]; //ËØªÂèñ‰Ωé‰Ωç
                         i++;
                     }
                     else
@@ -371,11 +372,11 @@ namespace WindowsApplication2
                     }
 
                     chr = low + high * 256;
-                    if (chr < 0x80) // ASCII¬Î
+                    if (chr < 0x80) // ASCIIÁ†Å
                     { }
-                    else if (chr < 0x8140) // 0x80 - 0x813F Œ¥∂®“Âø’º‰
+                    else if (chr < 0x8140) // 0x80 - 0x813F Êú™ÂÆö‰πâÁ©∫Èó¥
                     {
-                        strCodeType = "CODETYPE_DEFAULT";   // Œ¥÷™±‡¬Î
+                        strCodeType = "CODETYPE_DEFAULT";   // Êú™Áü•ÁºñÁ†Å
                         break;
                     }
                     else
@@ -392,13 +393,13 @@ namespace WindowsApplication2
 
             if (strCodeType == "CODETYPE_BIG5")
             {
-                for (i = 0; i < MyByte.Length; )
+                for (i = 0; i < myByte.Length; )
                 {
-                    high = MyByte[i]; //∂¡»°µ⁄“ª∏ˆbyte
+                    high = myByte[i]; //ËØªÂèñÁ¨¨‰∏Ä‰∏™byte
                     i++;
-                    if (high > 0x7F) //µ⁄“ª∏ˆbyte «∏ﬂŒª
+                    if (high > 0x7F) //Á¨¨‰∏Ä‰∏™byteÊòØÈ´ò‰Ωç
                     {
-                        low = MyByte[i]; //∂¡»°µÕŒª
+                        low = myByte[i]; //ËØªÂèñ‰Ωé‰Ωç
                         i++;
                     }
                     else
@@ -407,11 +408,11 @@ namespace WindowsApplication2
                         high = 0;
                     }
                     chr = low + high * 256;
-                    if (chr < 0x80) // ASCII¬Î
+                    if (chr < 0x80) // ASCIIÁ†Å
                     { }
-                    else if (chr < 0x8140) // 0x80 - 0x813F Œ¥∂®“Âø’º‰
+                    else if (chr < 0x8140) // 0x80 - 0x813F Êú™ÂÆö‰πâÁ©∫Èó¥
                     {
-                        strCodeType = "CODETYPE_DEFAULT";   // Œ¥÷™±‡¬Î
+                        strCodeType = "CODETYPE_DEFAULT";   // Êú™Áü•ÁºñÁ†Å
                         break;
                     }
                     else
@@ -425,7 +426,7 @@ namespace WindowsApplication2
                     }
                 }
             }
-            if ((strCodeType == "CODETYPE_DEFAULT") && FakeJP)
+            if ((strCodeType == "CODETYPE_DEFAULT") && fakeJP)
                 strCodeType = "CODETYPE_SHIFTJIS";
 
             return strCodeType;
@@ -437,25 +438,25 @@ namespace WindowsApplication2
             sw.Write(FileContentTextBox.Text);
             sw.Close();
 
-            if (Path.GetExtension(original_path).ToLower() == ".cue")
+            if (Path.GetExtension(originalPath).ToLower() == ".cue")
             {
-                //  «∑Ò◊‘∂Ø∑¢ÀÕµΩ≤•∑≈∆˜
+                // ÊòØÂê¶Ëá™Âä®ÂèëÈÄÅÂà∞Êí≠ÊîæÂô®
                 if (AutoSend2PlayerCheckBox.Checked)
                 {
                     System.Diagnostics.Process.Start(PlayerPathTextBox.Text, paremeterTextBox.Text.Replace("%1", FilePathTextBox.Text));
                 }
-                // «∑Ò◊‘∂Ø¥¶¿Ì∆‰À˚CueŒƒº˛
+                //ÊòØÂê¶Ëá™Âä®Â§ÑÁêÜÂÖ∂‰ªñCueÊñá‰ª∂
                 if (AutoDealOtherCueCheckBox.Checked)
                 {
-                    if (musicfiles.Count == 0)  //»Áπ˚√ª”–À—µΩ“Ù¿÷¿‡–ÕŒƒº˛£¨≤ª◊˜»Œ∫Œ ¬«È
+                    if (musicfiles.Count == 0)  //Â¶ÇÊûúÊ≤°ÊúâÊêúÂà∞Èü≥‰πêÁ±ªÂûãÊñá‰ª∂Ôºå‰∏ç‰Ωú‰ªª‰Ωï‰∫ãÊÉÖ
                     { }
-                    else if (musicfiles.Count == 1)  //»Áπ˚÷ªÀ—µΩ“ª∏ˆ£¨ƒ«√¥Œﬁƒ‘“˛≤ÿ∆‰À˚cue
+                    else if (musicfiles.Count == 1)  //Â¶ÇÊûúÂè™ÊêúÂà∞‰∏Ä‰∏™ÔºåÈÇ£‰πàÊó†ËÑëÈöêËóèÂÖ∂‰ªñcue
                     {
                         DealOtherCue(false);
                     }
                     else
                     {
-                        DealOtherCue(true);  //»Áπ˚”–∂‡∏ˆ“Ù¿÷¿‡–ÕŒƒº˛£¨ƒ«√¥Ωˆ“˛≤ÿ”Î∏√cue“˝”√¡ÀÕ¨“ª∏ˆ“Ù¿÷Œƒº˛µƒcue
+                        DealOtherCue(true);  //Â¶ÇÊûúÊúâÂ§ö‰∏™Èü≥‰πêÁ±ªÂûãÊñá‰ª∂ÔºåÈÇ£‰πà‰ªÖÈöêËóè‰∏éËØ•cueÂºïÁî®‰∫ÜÂêå‰∏Ä‰∏™Èü≥‰πêÊñá‰ª∂ÁöÑcue
                     }                   
 
                 }
@@ -467,7 +468,7 @@ namespace WindowsApplication2
             OutputButton.Enabled = false;
             loaded = false;
 
-            //  «∑Ò◊‘∂ØÕÀ≥ˆ
+            // ÊòØÂê¶Ëá™Âä®ÈÄÄÂá∫
             if ((AutoExitCheckBox.Checked) && (AutoExitCheckBox.Enabled))
             {
                 Application.Exit();
@@ -477,7 +478,7 @@ namespace WindowsApplication2
         private void DealOtherCue(bool MultiMusicFile)
         {
             List<string> CueFile = new List<string>();
-            CueFile.AddRange(Directory.GetFiles(Path.GetDirectoryName(original_path), "*.cue"));
+            CueFile.AddRange(Directory.GetFiles(Path.GetDirectoryName(originalPath), "*.cue"));
             for (int i = 0; i < CueFile.Count; i++)
             {
                 if (CueFile[i] != FilePathTextBox.Text)
@@ -488,7 +489,7 @@ namespace WindowsApplication2
                     }
                     else
                     {
-                        if (FileInFileLine == OpenFile(CueFile[i]))
+                        if (fileInFileLine == OpenFile(CueFile[i]))
                         {
                             DealOtherCueChild(CueFile[i]);
                         }
@@ -510,30 +511,30 @@ namespace WindowsApplication2
             }
             else if (radioButton3.Checked)
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(original_path) + @"\" + SubDirTextBox.Text + @"\");
-                File.Move(path, Path.GetDirectoryName(original_path) + @"\" + SubDirTextBox.Text + @"\" + Path.GetFileName(path));
+                Directory.CreateDirectory(Path.GetDirectoryName(originalPath) + @"\" + SubDirTextBox.Text + @"\");
+                File.Move(path, Path.GetDirectoryName(originalPath) + @"\" + SubDirTextBox.Text + @"\" + Path.GetFileName(path));
             }
 
         }
 
-        private void button1_Click(object sender, EventArgs e)   //Õ®π˝°∞¥Úø™°±∂‘ª∞øÚ¥Úø™Œƒº˛
+        private void button1_Click(object sender, EventArgs e)   //ÈÄöËøá‚ÄúÊâìÂºÄ‚ÄùÂØπËØùÊ°ÜÊâìÂºÄÊñá‰ª∂
         {            
             
             if (OpenFileDialog.ShowDialog() == DialogResult.OK)
             {                
-                original_path = OpenFileDialog.FileName;
+                originalPath = OpenFileDialog.FileName;
                 main_func();
             }       
         }
 
-        private void Form1_DragDrop(object sender, DragEventArgs e)  //Õ®π˝Õœ◊ß¥Úø™Œƒº˛
+        private void Form1_DragDrop(object sender, DragEventArgs e)  //ÈÄöËøáÊãñÊãΩÊâìÂºÄÊñá‰ª∂
         {            
-            original_path = ((System.Array)e.Data.GetData(DataFormats.FileDrop)).GetValue(0).ToString();
+            originalPath = ((System.Array)e.Data.GetData(DataFormats.FileDrop)).GetValue(0).ToString();
             main_func(); 
         }
 
 
-        private void Form1_DragEnter_1(object sender, DragEventArgs e)  //Õ®π˝Õœ◊ß¥Úø™Œƒº˛±ÿ–Î
+        private void Form1_DragEnter_1(object sender, DragEventArgs e)  //ÈÄöËøáÊãñÊãΩÊâìÂºÄÊñá‰ª∂ÂøÖÈ°ª
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
                 e.Effect = DragDropEffects.Link;
@@ -567,7 +568,7 @@ namespace WindowsApplication2
         //    }
         //}
 
-        private void Form1_Load(object sender, EventArgs e)   //∂¡»°≈‰÷√£¨≥ı ºªØ
+        private void Form1_Load(object sender, EventArgs e)   //ËØªÂèñÈÖçÁΩÆÔºåÂàùÂßãÂåñ
         {
             string[] com = Environment.GetCommandLineArgs();
             comboBox1.Text = "932";
@@ -610,12 +611,12 @@ namespace WindowsApplication2
             }            
             if (com.Length != 1)
             {
-                original_path = com[1];
+                originalPath = com[1];
                 main_func();
             }            
         }
 
-        private void Form1_FormClosed(object sender, FormClosedEventArgs e)   //±£¥Ê≈‰÷√
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)   //‰øùÂ≠òÈÖçÁΩÆ
         {
             config.IniWriteValue("Location", "x", this.Location.X.ToString());
             config.IniWriteValue("Location", "y", this.Location.Y.ToString());
@@ -641,18 +642,18 @@ namespace WindowsApplication2
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)   //  ÷∂Ø ‰≥ˆ
+        private void button2_Click(object sender, EventArgs e)   //ÊâãÂä®ËæìÂá∫
         {
             output();    
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)  //  «∑ÒÃÊªª‘¥Œƒº˛
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)  //ÊòØÂê¶ÊõøÊç¢Ê∫êÊñá‰ª∂
         {
             
             if (CoverOldFileCheckBox.Checked) 
             {
                 RenameTextBox.Enabled = false;
-                FilePathTextBox.Text = original_path;
+                FilePathTextBox.Text = originalPath;
               //  RenameTextBox.Text = "%filename%";
             }
             else 
@@ -663,7 +664,7 @@ namespace WindowsApplication2
             }            
         }
 
-        private void checkBox2_CheckedChanged(object sender, EventArgs e)  //◊‘∂Øƒ£ Ω ±Ω˚”√°∏ ‰≥ˆ°π∞¥≈•
+        private void checkBox2_CheckedChanged(object sender, EventArgs e)  //Ëá™Âä®Ê®°ÂºèÊó∂Á¶ÅÁî®„ÄåËæìÂá∫„ÄçÊåâÈíÆ
         {
             if (AutoOutputCheckBox.Checked)
             {
@@ -726,17 +727,17 @@ namespace WindowsApplication2
             }           
         }
 
-        private void button4_Click(object sender, EventArgs e) // ÃÌº”µΩ◊¢≤·±Ì
+        private void button4_Click(object sender, EventArgs e) // Ê∑ªÂä†Âà∞Ê≥®ÂÜåË°®
         {
             if (IsUserAdministrator())
             {
-                RegistryKey Root = Registry.ClassesRoot;
+                RegistryKey root = Registry.ClassesRoot;
                 RegistryKey software = null;
-                RegistryKey CurrentUser = Registry.CurrentUser;
+                RegistryKey currentUser = Registry.CurrentUser;
 
                 if ((System.Environment.OSVersion.Version.Major == 5) || ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor == 0)))
                 {
-                    software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\OpenWithProgids");
+                    software = currentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\OpenWithProgids");
                     if (software != null)
                     {
                         foreach (string b in software.GetValueNames())
@@ -745,9 +746,11 @@ namespace WindowsApplication2
                         }
                     }
                     string a = "";
-                    software = Root.OpenSubKey(".cue");
+                    software = root.OpenSubKey(".cue");
                     if (software != null)
-                        a = software.GetValue("").ToString();
+                    {
+                        a = software.GetValue("", "").ToString();
+                    }
                     if (a != "")
                         AddToReg(a);
                     else
@@ -759,11 +762,10 @@ namespace WindowsApplication2
                 if ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor >= 1))
                 {
                     string a = "";
-                    software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\UserChoice");
+                    software = currentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\UserChoice");
                     if (software != null)
                     {
-                        if (software.GetValue("Progid") != null)
-                            a = software.GetValue("Progid").ToString();
+                        a = software.GetValue("Progid", "").ToString();
                     }
                     if (a != "")
                     {
@@ -771,51 +773,56 @@ namespace WindowsApplication2
                     }
                     else
                     {
-                        software = Root.OpenSubKey(".cue");
+                        software = root.OpenSubKey(".cue");
                         if (software != null)
-                            a = software.GetValue("").ToString();
+                        {
+                            a = software.GetValue("", "").ToString();
+                        }
                         if (a != "")
+                        {
                             AddToReg(a);
+                        }
                         else
                         {
                             AddToReg(".cue");
                         }
+
                     }
                 }
-                MessageBox.Show("“—≥…π¶◊¢≤·µΩ”“º¸≤Àµ•!");
+                MessageBox.Show("Â∑≤ÊàêÂäüÊ≥®ÂÜåÂà∞Âè≥ÈîÆËèúÂçï!");
             }
             else
             {
-                MessageBox.Show("«Î÷ÿ∆Ù≥Ã–Ú”√π‹¿Ì‘±…Ì∑›‘À––!");
+                MessageBox.Show("ËØ∑ÈáçÂêØÁ®ãÂ∫èÁî®ÁÆ°ÁêÜÂëòË∫´‰ªΩËøêË°å!");
             }
         }
 
         void AddToReg(string a)
         {
-            RegistryKey Root = Registry.ClassesRoot;
-            RegistryKey cue = Root.CreateSubKey(a);
+            RegistryKey root = Registry.ClassesRoot;
+            RegistryKey cue = root.CreateSubKey(a);
             RegistryKey shell = cue.CreateSubKey("shell");
-            if (shell.OpenSubKey("”√ FixCue –ﬁ∏¥") != null)
-                shell.DeleteSubKeyTree("”√ FixCue –ﬁ∏¥");
+            if (shell.OpenSubKey("Áî® FixCue ‰øÆÂ§ç") != null) //ËÄÅÁâàÊú¨ÈÅóÁïô
+                shell.DeleteSubKeyTree("Áî® FixCue ‰øÆÂ§ç");
             if (shell.OpenSubKey("Fix") != null)
                 shell.DeleteSubKeyTree("Fix");
-            RegistryKey mystring = shell.CreateSubKey("Fix");
-            mystring.SetValue("", "”√ FixCue –ﬁ∏¥");
-            RegistryKey command = mystring.CreateSubKey("command");
+            RegistryKey fix = shell.CreateSubKey("Fix");
+            fix.SetValue("", "Áî® FixCue ‰øÆÂ§ç");
+            RegistryKey command = fix.CreateSubKey("command");
             command.SetValue("", @"""" + Application.ExecutablePath + @""" ""%1""");
         }
 
-        private void button5_Click(object sender, EventArgs e) //¥”◊¢≤·±Ì“∆≥˝
+        private void button5_Click(object sender, EventArgs e) //‰ªéÊ≥®ÂÜåË°®ÁßªÈô§
         {
             if (IsUserAdministrator())
             {
-                RegistryKey CurrentUser = Registry.CurrentUser;
-                RegistryKey Root = Registry.ClassesRoot;
+                RegistryKey currentUser = Registry.CurrentUser;
+                RegistryKey root = Registry.ClassesRoot;
                 RegistryKey software = null;
 
                 if ((System.Environment.OSVersion.Version.Major == 5) || ((System.Environment.OSVersion.Version.Major == 6) && (System.Environment.OSVersion.Version.Minor == 0)))
                 {
-                    software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\OpenWithProgids");
+                    software = currentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\OpenWithProgids");
                     if (software != null)
                     {
                         foreach (string b in software.GetValueNames())
@@ -824,11 +831,15 @@ namespace WindowsApplication2
                         }
                     }
                     string a = "";
-                    software = Root.OpenSubKey(".cue");
+                    software = root.OpenSubKey(".cue");
                     if (software != null)
-                        a = software.GetValue("").ToString();
+                    {
+                        a = software.GetValue("", "").ToString();
+                    }
                     if (a != "")
+                    {
                         RemoveFromReg(a);
+                    }
                     else
                     {
                         RemoveFromReg(".cue");
@@ -839,11 +850,10 @@ namespace WindowsApplication2
                 {
 
                     string a = "";
-                    software = CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\UserChoice");
+                    software = currentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.cue\UserChoice");
                     if (software != null)
                     {
-                        if (software.GetValue("Progid") != null)
-                            a = software.GetValue("Progid").ToString();
+                        a = software.GetValue("Progid","").ToString();
                     }
                     if (a != "")
                     {
@@ -851,9 +861,9 @@ namespace WindowsApplication2
                     }
                     else
                     {
-                        software = Root.OpenSubKey(".cue");
+                        software = root.OpenSubKey(".cue");
                         if (software != null)
-                            a = software.GetValue("").ToString();
+                            a = software.GetValue("","").ToString();                    
                         if (a != "")
                             RemoveFromReg(a);
                         else
@@ -862,28 +872,28 @@ namespace WindowsApplication2
                         }
                     }
                 }
-                MessageBox.Show("“—≥…π¶¥””“º¸≤Àµ•–∂‘ÿ!");
+                MessageBox.Show("Â∑≤ÊàêÂäü‰ªéÂè≥ÈîÆËèúÂçïÂç∏ËΩΩ!");
             }
             else
             {
-                MessageBox.Show("«Î÷ÿ∆Ù≥Ã–Ú”√π‹¿Ì‘±…Ì∑›‘À––!");
+                MessageBox.Show("ËØ∑ÈáçÂêØÁ®ãÂ∫èÁî®ÁÆ°ÁêÜÂëòË∫´‰ªΩËøêË°å!");
             }
         }
 
         void RemoveFromReg(string a)
         {
-            RegistryKey Root = Registry.ClassesRoot;
-            RegistryKey cue_shell = Root.OpenSubKey(a + @"\shell", true);
+            RegistryKey root = Registry.ClassesRoot;
+            RegistryKey cue_shell = root.OpenSubKey(a + @"\shell", true);
             if (cue_shell != null)
             {
-                if (cue_shell.OpenSubKey("”√ FixCue –ﬁ∏¥") != null)
-                    cue_shell.DeleteSubKeyTree("”√ FixCue –ﬁ∏¥");
+                if (cue_shell.OpenSubKey("Áî® FixCue ‰øÆÂ§ç") != null) //ËÄÅÁâàÊú¨ÈÅóÁïô
+                    cue_shell.DeleteSubKeyTree("Áî® FixCue ‰øÆÂ§ç");
                 if (cue_shell.OpenSubKey("Fix") != null)
                     cue_shell.DeleteSubKeyTree("Fix");
             }
         }
 
-        private void Form1_SizeChanged(object sender, EventArgs e)
+        private void Form1_SizeChanged(object sender, EventArgs e) //???
         {
             if (this.Width >= 817)
             { pictureBox1.Left = this.Width - 56; }
@@ -895,7 +905,7 @@ namespace WindowsApplication2
         {
             if (loaded)
             {
-                forcecode = true;
+                forceCode = true;
                 main_func();
             }
         }
@@ -909,28 +919,28 @@ namespace WindowsApplication2
         [DllImport("kernel32")]
         private static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
         /// 
-        /// ππ‘Ï∑Ω∑®
+        /// ÊûÑÈÄ†ÊñπÊ≥ï
         /// 
-        /// Œƒº˛¬∑æ∂
+        /// Êñá‰ª∂Ë∑ØÂæÑ
         public INIClass(string INIPath)
         {
             inipath = INIPath;
         }
         /// 
-        /// –¥»ÎINIŒƒº˛
+        /// ÂÜôÂÖ•INIÊñá‰ª∂
         /// 
-        /// œÓƒø√˚≥∆(»Á [TypeName] )
-        /// º¸
-        /// ÷µ
+        /// È°πÁõÆÂêçÁß∞(Â¶Ç [TypeName] )
+        /// ÈîÆ
+        /// ÂÄº
         public void IniWriteValue(string Section, string Key, string Value)
         {
             WritePrivateProfileString(Section, Key, Value, this.inipath);
         }
         /// 
-        /// ∂¡≥ˆINIŒƒº˛
+        /// ËØªÂá∫INIÊñá‰ª∂
         /// 
-        /// œÓƒø√˚≥∆(»Á [TypeName] )
-        /// º¸
+        /// È°πÁõÆÂêçÁß∞(Â¶Ç [TypeName] )
+        /// ÈîÆ
         public string IniReadValue(string Section, string Key)
         {
             StringBuilder temp = new StringBuilder(500);
@@ -938,9 +948,9 @@ namespace WindowsApplication2
             return temp.ToString();
         }
         /// 
-        /// —È÷§Œƒº˛ «∑Ò¥Ê‘⁄
+        /// È™åËØÅÊñá‰ª∂ÊòØÂê¶Â≠òÂú®
         /// 
-        /// ≤º∂˚÷µ
+        /// Â∏ÉÂ∞îÂÄº
         public bool ExistINIFile()
         {
             return System.IO.File.Exists(inipath);
