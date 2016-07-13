@@ -6,5 +6,5 @@ Please refer to the [publish page](https://fireattack.wordpress.com/fixcue/) and
 ## Installation
 
 Either 
-* Download the whole folder Build with Visual Studio 2010+. When using (or debugging), put the maps to the same folder of the executable.
-* Download from Releases.
+* Download the whole folder and build with Visual Studio 2010+. When using (or debugging), put the maps to the same folder of the executable.
+* Download the newest version from [Releases](https://github.com/fireattack/FixCue/releases).
