@@ -7,5 +7,4 @@ Please refer to the [publish page](https://fireattack.wordpress.com/fixcue/) and
 
 Either 
 * Download the whole folder Build with Visual Studio 2010+. When using (or debugging), put the maps to the same folder of the executable.
-Or
 * Download from Releases.
